@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hermes Forge · Free Interactive Demo</title><meta name="description" content="Try the Hermes Forge workflow with fictional data and scripted previews. No account or API key needed."><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<style>
+  :root {
+    --bg: #f5f4f0; --panel: #ffffff; --ink: #1c1c1a; --muted: #6b6a64; --line: #e2e0d8;
+    --accent: #2d5bd7; --accent-ink: #fff; --ok: #1f7a4a; --ok-bg: #e6f4ec; --warn: #9a5b00; --warn-bg: #fdf3e1;
+    --bad: #b3261e; --bad-bg: #fbe9e7; --soft: #f0efe9; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+  button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 8px; padding: 7px 12px; }
+  button:hover:not(:disabled) { border-color: #c9c6ba; }
+  button:disabled { opacity: .55; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  button.danger { color: var(--bad); }
+  button.link { border: 0; background: none; padding: 0; color: var(--accent); }
+  button.small { padding: 3px 9px; font-size: 13px; }
+  input, textarea, select { font: inherit; width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  textarea { resize: vertical; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent); border-color: var(--accent); }
+  .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 12.5px; }
+  .invalid { border-color: var(--bad) !important; background: var(--bad-bg); }
+  .app { display: grid; grid-template-columns: 270px 1fr; height: 100vh; }
+  aside { border-right: 1px solid var(--line); background: var(--soft); display: flex; flex-direction: column; min-height: 0; }
+  .brand { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px 10px; }
+  .brand b { font-size: 16px; letter-spacing: -.01em; }
+  .side-actions { padding: 0 14px 10px; display: grid; gap: 8px; }
+  .list { overflow-y: auto; padding: 0 8px 14px; flex: 1; }
+  .item { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 9px 10px; border-radius: 8px; }
+  .item:hover { background: #e8e6de; }
+  .item.active { background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
+  .item .t { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item .s { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  main { overflow-y: auto; min-width: 0; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 20px 24px 60px; }
+  .head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .head h1 { font-size: 20px; margin: 0; flex: 1; min-width: 200px; letter-spacing: -.01em; }
+  .status { color: var(--muted); font-size: 13px; }
+  .status.err { color: var(--bad); }
+  .tabs { display: flex; gap: 4px; margin: 16px 0 18px; border-bottom: 1px solid var(--line); }
+  .tabs { overflow-x: auto; overflow-y: hidden; }
+  .tab { white-space: nowrap; }
+  .choice { display:flex; align-items:center; gap:8px; margin:8px 0; }
+  .choice input { width:auto; }
+  .step { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); }
+  .step input { width:auto; }
+  button:focus-visible, a:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+  .tab { border: 0; background: none; border-radius: 0; padding: 9px 14px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 15px; margin: 0 0 4px; }
+  .card > .hint:first-of-type { margin-top: 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  label.f { display: block; margin-top: 12px; }
+  label.f > span { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .hint { color: var(--muted); font-size: 12.5px; margin: 4px 0 0; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .spacer { flex: 1; }
+  .callout { border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px; }
+  .callout.warn { background: var(--warn-bg); color: #5c3a00; }
+  .callout.ok { background: var(--ok-bg); color: #0f4d2c; }
+  .callout.bad { background: var(--bad-bg); color: #6e1610; }
+  .tool { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin-top: 12px; }
+  details > summary { cursor: pointer; color: var(--accent); margin-top: 10px; font-size: 13px; }
+  .scen { display: grid; grid-template-columns: 1fr 2fr 2fr auto; gap: 8px; margin-top: 8px; align-items: start; }
+  .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+  .empty h2 { color: var(--ink); }
+  .chat { height: 380px; overflow-y: auto; background: var(--soft); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .msg { padding: 9px 12px; border-radius: 10px; max-width: 85%; white-space: pre-wrap; word-wrap: break-word; }
+  .msg.user { align-self: flex-end; background: var(--ink); color: #fff; }
+  .msg.agent { align-self: flex-start; background: #fff; border: 1px solid var(--line); }
+  .msg.error { align-self: stretch; background: var(--bad-bg); color: #6e1610; max-width: none; }
+  .toolcall { align-self: flex-start; font-size: 12.5px; max-width: 85%; }
+  .toolcall summary { color: var(--muted); margin: 0; }
+  .toolcall pre, .result pre { white-space: pre-wrap; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin: 6px 0 0; max-height: 220px; overflow: auto; }
+  .result { border-top: 1px solid var(--line); padding: 10px 0; }
+  .badge { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 99px; padding: 1px 9px; }
+  .badge.pass { background: var(--ok-bg); color: var(--ok); }
+  .badge.fail { background: var(--bad-bg); color: var(--bad); }
+  .badge.wait { background: var(--soft); color: var(--muted); }
+  .check { display: flex; gap: 10px; padding: 6px 0; }
+  .check .i { width: 20px; text-align: center; }
+  pre.cmd { background: #1c1c1a; color: #f0efe9; padding: 10px 12px; border-radius: 8px; overflow-x: auto; margin: 6px 0; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(20,20,18,.35); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; z-index: 10; }
+  .modal { background: var(--panel); border-radius: 12px; padding: 20px; width: 100%; max-width: 560px; }
+  .modal h2 { margin: 0 0 4px; font-size: 18px; }
+  .toasts { position: fixed; right: 16px; bottom: 16px; display: grid; gap: 8px; z-index: 20; }
+  .toast { background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 8px; max-width: 380px; box-shadow: 0 4px 16px rgba(0,0,0,.15); }
+  .toast.bad { background: var(--bad); }
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; height: auto; }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); max-height: 40vh; }
+    .grid2, .grid3, .scen { grid-template-columns: 1fr; }
+    .wrap { padding: 16px; }
+  }
+.demo-notice{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 18px;background:var(--warn-bg);border-bottom:1px solid var(--line)}.demo-notice span{color:var(--muted)}.app{height:calc(100dvh - 69px)}@media(max-width:700px){.demo-notice{font-size:12px;gap:3px;padding:8px 12px}.app{height:calc(100dvh - 82px)}}
+</style>
+</head>
+<body>
+<div class="demo-notice"><strong>Free interactive demo</strong><span>Fictional data · scripted previews · saved only in this browser. Use sample information; never enter keys.</span></div><div class="app">
+  <aside>
+    <div class="brand"><b>Agent Forge</b><button class="small" data-act="settings">⚙ Settings</button></div>
+    <div class="side-actions">
+      <button class="primary" data-act="new">+ New agent</button>
+      <button data-act="resetDemo">Reset sample data</button><input id="search" placeholder="Search clients or agents…">
+    </div>
+    <div class="list" id="list"></div>
+  </aside>
+  <main><div class="wrap" id="main"></div></main>
+</div>
+<div id="modal"></div>
+<div class="toasts" id="toasts"></div>
+<datalist id="models"></datalist>
+<datalist id="channels">
+  <option value="Website chat widget"><option value="Slack"><option value="Microsoft Teams"><option value="Email inbox">
+  <option value="SMS / WhatsApp"><option value="Phone (voice agent)"><option value="Internal API / automation"><option value="CRM or helpdesk sidebar">
+</datalist>
+
+<script src="./demo.js"></script>
+<script>
+const S = { settings: null, agents: [], agent: null, tab: 'brief', chat: [], chatView: [], results: [], busy: {}, exportResult: null, models: [] };
+const $ = (sel) => document.querySelector(sel);
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+
+async function api(method, url, body) {
+  return window.ForgeDemo.api(method, url, body);
+/* No server transport in the static demo.
+  const res = await fetch(url, { method, headers: { 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => ({ error: `Server returned ${res.status}` }));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+*/}
+
+function toast(text, bad) {
+  const t = document.createElement('div');
+  t.className = 'toast' + (bad ? ' bad' : '');
+  t.textContent = text;
+  $('#toasts').appendChild(t);
+  setTimeout(() => t.remove(), bad ? 8000 : 4000);
+}
+
+// ---------- paths & saving ----------
+function getPath(obj, p) { return p.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj); }
+function setPath(obj, p, v) {
+  const keys = p.split('.');
+  let o = obj;
+  keys.slice(0, -1).forEach((k, i) => { if (o[k] == null) o[k] = /^\d+$/.test(keys[i + 1]) ? [] : {}; o = o[k]; });
+  o[keys.at(-1)] = v;
+}
+
+let saveTimer = null, savePromise = null;
+function setStatus(text, err) { const el = $('#status'); if (el) { el.textContent = text; el.className = 'status' + (err ? ' err' : ''); } }
+function scheduleSave() { setStatus('Unsaved changes…'); clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 700); }
+async function saveNow() {
+  clearTimeout(saveTimer); saveTimer = null;
+  if (!S.agent) return;
+  const agent = S.agent;
+  setStatus('Saving…');
+  savePromise = api('PUT', '/api/agent', agent).then((saved) => {
+    S.saveError = null;
+    agent.updatedAt = saved.updatedAt;
+    if (S.agent === agent) setStatus('Saved in this browser');
+    updateListItem(agent);
+  }).catch((e) => { S.saveError = e; setStatus('Not saved: ' + e.message, true); });
+  return savePromise;
+}
+async function flushSave() { if (saveTimer) await saveNow(); else if (savePromise) await savePromise; if (S.saveError) throw S.saveError; }
+
+// ---------- library ----------
+function agentTitle(a) { return a.agentName || a.brief?.agentName || a.design?.agentName || 'Untitled agent'; }
+function clientName(a) { return (typeof a.client === 'string' ? a.client : a.client?.name) || 'No client yet'; }
+function renderList() {
+  const q = $('#search').value.trim().toLowerCase();
+  const items = S.agents.filter((a) => !q || `${a.client} ${a.agentName}`.toLowerCase().includes(q));
+  $('#list').innerHTML = items.length ? items.map((a) => {
+    const bits = [clientName(a)];
+    if (a.lastTest) bits.push(`${a.lastTest.total} demo previews`);
+    if (a.version) bits.push(`v${a.version}`);
+    return `<button class="item ${S.agent?.id === a.id ? 'active' : ''}" data-open="${a.id}"><div class="t">${esc(agentTitle(a))}</div><div class="s">${esc(bits.join(' · '))}</div></button>`;
+  }).join('') : `<p class="hint" style="padding:8px 10px">${S.agents.length ? 'No matches.' : 'Your agents will appear here.'}</p>`;
+}
+function updateListItem(agent) {
+  const i = S.agents.findIndex((a) => a.id === agent.id);
+  const summary = { id: agent.id, client: agent.client?.name || '', agentName: agent.brief?.agentName || agent.design?.agentName || '', updatedAt: agent.updatedAt, hasDesign: !!agent.design, lastTest: agent.lastTest ? { passed: agent.lastTest.passed, total: agent.lastTest.total } : null, version: agent.version || 0 };
+  if (i >= 0) S.agents[i] = summary; else S.agents.unshift(summary);
+  renderList();
+}
+async function refreshList() { S.agents = (await api('GET', '/api/agents')).agents; renderList(); }
+
+async function openAgent(id) {
+  await flushSave();
+  S.agent = await api('GET', '/api/agent?id=' + encodeURIComponent(id));
+  S.configured = (await api('GET', '/api/secrets?id=' + encodeURIComponent(id))).configured;
+  S.connectResults = {};
+  S.preflight = null; S.readiness = null; S.deployDownload = null;
+  S.workspaces = []; S.orgoJob = S.agent.platform === 'hermes' ? await api('GET', '/api/orgo/status?id=' + encodeURIComponent(id)) : null;
+  S.chat = []; S.chatView = []; S.exportResult = null;
+  S.results = S.agent.lastTest?.results || [];
+  S.tab = S.agent.design ? S.agent.platform === 'hermes' ? 'soul' : 'design' : 'brief';
+  renderList(); render();
+}
+
+// ---------- rendering ----------
+function field(label, path, o = {}) {
+  const v = getPath(S.agent, path);
+  const attrs = `data-bind="${path}" placeholder="${esc(o.ph || '')}" ${o.list ? `list="${o.list}"` : ''} class="${o.mono ? 'mono' : ''}"`;
+  const input = o.rows ? `<textarea rows="${o.rows}" ${attrs}>${esc(v)}</textarea>` : `<input ${attrs} value="${esc(v)}">`;
+  return `<label class="f"><span>${label}</span>${input}${o.hint ? `<p class="hint">${o.hint}</p>` : ''}</label>`;
+}
+function linesField(label, path, o = {}) {
+  return `<label class="f"><span>${label}</span><textarea rows="${o.rows || 4}" data-lines="${path}" placeholder="${esc(o.ph || '')}">${esc((getPath(S.agent, path) || []).join('\n'))}</textarea>${o.hint ? `<p class="hint">${o.hint}</p>` : ''}</label>`;
+}
+function jsonField(label, path, o = {}) {
+  return `<label class="f"><span>${label}</span><textarea rows="${o.rows || 6}" class="mono" data-json="${path}">${esc(JSON.stringify(getPath(S.agent, path) ?? {}, null, 2))}</textarea><p class="hint" data-json-msg="${path}">${o.hint || ''}</p></label>`;
+}
+
+function render() {
+  const m = $('#main');
+  if (!S.settings?.builderReady && !S.agent) {
+    m.innerHTML = `<div class="empty"><h2>Welcome to Agent Forge</h2><p>First, connect a model provider. It takes a minute.</p><button class="primary" data-act="settings">Open Settings</button></div>`;
+    return;
+  }
+  if (!S.agent) {
+    m.innerHTML = `<div class="empty"><h2>Build a client agent</h2><p>Start a new agent, or open one from your library to reuse it.</p><button class="primary" data-act="new">+ New agent</button></div>`;
+    return;
+  }
+  const a = S.agent;
+  const tabs = a.platform === 'hermes' ? [['brief', 'Brief'], ['soul', 'Soul'], ['skills', 'Skills'], ['connect', 'Connect'], ['test', 'Test'], ['deploy', 'Deploy'], ['export', 'Verify / Export']] : [['brief', '1 · Brief'], ['design', '2 · Design'], ['test', '3 · Test'], ['export', '4 · Export']];
+  m.innerHTML = `
+    <div class="head">
+      <h1 id="title">${esc(agentTitle(a))}<span class="status" style="font-weight:400"> — ${esc(clientName(a))}</span></h1>
+      <span class="status" id="status">Saved</span>
+      <button class="small" data-act="duplicate" title="Copy this agent as the starting point for another client">Duplicate</button>
+      <button class="small danger" data-act="delete">Delete</button>
+    </div>
+    <div class="tabs">${tabs.map(([k, l]) => `<button class="tab ${S.tab === k ? 'active' : ''}" data-tab="${k}">${l}</button>`).join('')}</div>
+    <div id="panel">${{ brief: renderBrief, design: renderDesign, soul: renderSoul, skills: renderSkills, connect: renderConnect, test: renderTest, deploy: renderDeploy, export: renderExport }[S.tab]()}</div>`;
+  if (S.tab === 'test') { renderChat(); renderResults(); }
+}
+function updateTitle() { const t = $('#title'); if (t) t.innerHTML = `${esc(agentTitle(S.agent))}<span class="status" style="font-weight:400"> — ${esc(clientName(S.agent))}</span>`; }
+
+function renderBrief() {
+  const a = S.agent;
+  const refs = S.agents.filter((x) => x.id !== a.id && x.hasDesign);
+  return `
+    ${a.platform === 'hermes' ? `<section class="card"><h2>Client setup</h2><label class="f"><span>Starting preset</span><select id="presetPicker"><option value="">Choose after discovery</option>${S.catalog.presets.map((p) => `<option value="${p.id}" ${a.preset === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label><p class="hint">Keep the client's existing tools. Telegram is suggested when they have no preference.</p><button data-act="preflight" style="margin-top:12px">Generate pre-flight email</button>${S.preflight ? `<label class="f"><span>Pre-flight email draft</span><textarea rows="12" readonly>${esc(S.preflight)}</textarea></label><button data-copy="${esc(S.preflight)}">Copy email draft</button>` : ''}</section>` : ''}
+    ${a.duplicatedFrom ? `<div class="callout ok">Copied from <b>${esc(a.duplicatedFrom.agentName || 'an agent')}</b>${a.duplicatedFrom.client ? ` for ${esc(a.duplicatedFrom.client)}` : ''}. The design is already filled in: update the brief for the new client, then use <b>Refine</b> on the Design tab, or regenerate.</div>` : ''}
+    <div class="card">
+      <h2>Client</h2>
+      <div class="grid3">${field('Client name', 'client.name', { ph: 'Harbour Dental' })}${field('Industry', 'client.industry', { ph: 'Dental clinic, 3 locations' })}${field('Website', 'client.website', { ph: 'harbourdental.com.au' })}</div>
+    </div>
+    <div class="card">
+      <h2>The agent</h2>
+      <div class="grid2">${field('Agent name', 'brief.agentName', { ph: 'Leave blank to let the AI suggest one' })}${a.platform === 'hermes' ? selectField('Messaging channel', 'brief.channel', ['telegram', 'slack', 'discord', 'whatsapp']) : field('Where it will run', 'brief.channel', { ph: 'Website chat, Slack, email…', list: 'channels' })}</div>
+      ${field('Goal: what should it achieve?', 'brief.goal', { rows: 3, ph: 'Answer patient questions and book, move or cancel appointments 24/7 so reception stops drowning in calls.' })}
+      <div class="grid2">${field('In scope', 'brief.inScope', { rows: 4, ph: 'Bookings, opening hours, prices of standard services, directions…' })}${field('Out of scope', 'brief.outScope', { rows: 4, ph: 'Clinical advice, billing disputes, anything about specific treatment plans…' })}</div>
+      ${field("Client's systems and tools", 'brief.systems', { rows: 3, ph: 'Cliniko (practice management, has API), Google Workspace, Twilio SMS, Slack for staff. Wants Make.com for anything without an API.', hint: 'What they use now, or the setup they want. Mention which ones have API access if you know.' })}
+      ${field('Discovery notes or call transcript', 'brief.notes', { rows: 8, ph: 'Paste your notes or the call transcript here. Messy is fine.' })}
+      <label class="f"><span>Start from a past agent (optional)</span>
+        <select data-bind="referenceId"><option value="">No, design from scratch</option>${refs.map((r) => `<option value="${r.id}" ${a.referenceId === r.id ? 'selected' : ''}>${esc(agentTitle(r))} — ${esc(clientName(r))}</option>`).join('')}</select>
+        <p class="hint">The AI reuses what fits from that agent and adapts it to this client's systems.</p></label>
+    </div>
+    <div class="row"><span class="spacer"></span>${busyButton('generate', a.design ? 'Regenerate design' : 'Generate agent design →', 'Designing')}</div>`;
+}
+
+function selectField(label, bind, options) {
+  const labels = { 'ask-first': 'Ask before every external action', 'small-auto': 'Handle small actions; confirm bigger decisions', 'full-auto': 'Act within approved guardrails', 'client-choice': 'Choose with the client', syncthing: 'Syncthing over Tailscale', 'obsidian-sync': 'Obsidian Sync', 'remote-desktop': 'Access through the Orgo desktop' };
+  return `<label class="f"><span>${esc(label)}</span><select data-bind="${esc(bind)}">${options.map((v) => `<option value="${esc(v)}" ${getPath(S.agent, bind) === v ? 'selected' : ''}>${esc(labels[v] || v)}</option>`).join('')}</select></label>`;
+}
+
+function renderSoul() {
+  const a = S.agent;
+  return `<h2>Shape the agent with your client</h2><p class="hint">Read the identity aloud together. Keep business processes and escalation details in the operating rules.</p><div class="grid2">${field('Agent name', 'soulInputs.agentName')}${selectField('Personality', 'soulInputs.personality', ['direct', 'warm', 'playful', 'professional'])}</div>
+    ${linesField('Tasks (one per line)', 'soulInputs.tasks')}${selectField('Autonomy', 'soulInputs.autonomy', ['ask-first', 'small-auto', 'full-auto'])}${field('Personality and boundaries', 'soulInputs.custom', { rows: 3 })}
+    <p class="hint">Ask-first confirms every external action. Small-auto confirms new recipients, money, deletion and public actions. Full-auto still follows guardrails.</p><div class="row" style="margin:12px 0">${busyButton('soul', 'Generate SOUL', 'Writing SOUL')}</div>
+    ${a.design ? `${field('SOUL.md', 'design.soul', { rows: 14 })}<label class="f"><span>Refinement request</span><textarea id="soulRefine" rows="2" placeholder="For example: be warmer, keep replies concise"></textarea></label><button data-act="refineSoul">Refine SOUL</button>${field('Operating rules and escalation contact', 'design.agentsMd', { rows: 9 })}${linesField('Guardrails', 'design.guardrails')}${linesField('Questions to confirm', 'design.openQuestions')}<label class="f"><span>Refine the full design</span><textarea id="refine" rows="2"></textarea></label>${busyButton('refine', 'Refine design', 'Refining')}` : '<p class="hint">Generate a design from the Brief first to add operating rules, skills and connections.</p>'}`;
+}
+
+function renderSkills() {
+  const d = S.agent.design;
+  if (!d) return `<p>Generate a design from the Brief before selecting skills.</p><button data-tab="brief">Go to Brief</button>`;
+  return `<h2>Skills for this client</h2><div class="row"><select id="catalogSkill" aria-label="Starter skill" style="flex:1">${S.catalog.skills.map((s) => `<option value="${esc(s.name)}">${esc(s.name)}: ${esc(s.description)}</option>`).join('')}</select><button data-act="addCatalogSkill">Add starter</button></div>
+    <label class="f"><span>Describe another skill</span><textarea id="skillPrompt" rows="2" placeholder="What should it do, when should it ask, and how will it check its work?"></textarea></label>${busyButton('draftSkill', 'Draft skill', 'Drafting')}
+    ${d.skills.map((s, i) => `<section class="tool"><div class="grid2">${field('Skill name', `design.skills.${i}.name`)}${field('Category', `design.skills.${i}.category`)}</div>${field('Short description (60 characters maximum)', `design.skills.${i}.description`)}<p class="hint" data-skill-warning="${i}">${s.description.length > 60 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s.name) ? 'Use a kebab-case name and a description of up to 60 characters.' : esc(s.source)}</p>${field('Procedure, pitfalls and verification', `design.skills.${i}.body`, { rows: 10 })}<details><summary>Required tools and setup fields</summary>${linesField('Required tool names', `design.skills.${i}.requiresTools`)}${jsonField('Credential fields: name, prompt and help', `design.skills.${i}.env`, { rows: 4 })}</details><div class="row" style="margin-top:12px"><button data-act="saveSkill" data-i="${i}">Save to reusable catalog</button><button class="danger" data-act="removeSkill" data-i="${i}">Remove skill</button></div></section>`).join('')}
+    <h2 style="margin-top:24px">Live test scenarios</h2><p class="hint">Include at least three scenarios to run in the client's actual channel before handover.</p>${d.scenarios.map((s, i) => `<section class="tool">${field('Scenario name', `design.scenarios.${i}.name`)}${field('Client message', `design.scenarios.${i}.userMessage`, { rows: 2 })}${field('Expected behavior', `design.scenarios.${i}.expected`, { rows: 2 })}<button data-act="removeScenario" data-i="${i}">Remove scenario</button></section>`).join('')}<button data-act="addScenario" style="margin-top:12px">Add scenario</button>`;
+}
+
+function renderDeploy() {
+  return window.ForgeDemo.deploy(S.agent, S.catalog, esc);
+  const a = S.agent;
+  const started = a.callStartedAt ? Math.floor((Date.now() - Date.parse(a.callStartedAt)) / 60000) : 0;
+  return `<div class="row"><h2>Client call checklist</h2><span class="spacer"></span><span role="timer">${started} minutes elapsed</span><button data-act="startCall">${a.callStartedAt ? 'Restart call timer' : 'Start call timer'}</button></div>
+    ${S.catalog.callSteps.map((step) => `<label class="step"><input type="checkbox" data-call-step="${step.id}" ${a.callChecklist?.[step.id] ? 'checked' : ''}><span>${esc(step.label)}</span><span class="hint">${step.minutes} min</span></label>`).join('')}
+    <section class="card" style="margin-top:18px"><h2>Prepare deployment</h2><p>Build a private, single-use script, upload it to the client's Orgo computer, then run it in the terminal. It contains credentials. Keep it out of email and Git.</p><div class="row">${busyButton('buildDeploy', 'Build deploy script', 'Building')}<button data-act="readiness">Check missing setup</button></div>${S.readiness ? `<ul>${S.readiness.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>` : ''}${S.deployDownload ? `<p><a href="${esc(S.deployDownload.downloadUrl)}" download>Download ${esc(S.deployDownload.filename)}</a></p><p class="hint">On the VM: bash ${esc(S.deployDownload.filename)}. For a preview: FORGE_DRY_RUN=1 bash ${esc(S.deployDownload.filename)}.</p>` : ''}
+    <p class="hint">After installation, pair the messaging channel, authorize selected Composio apps, join the client's device to Tailscale, and connect Hermes Desktop to the private dashboard.</p><button data-act="confirmDeploy">Deployment finished: delete local script</button></section>
+    ${a.design ? `<h2>Client machine and knowledge access</h2>${field('Orgo computer UUID', 'deploy.orgoComputerId')}${field('Tailscale host', 'deploy.tailscaleHost')}${selectField('Vault access', 'vaultSync', ['client-choice', 'syncthing', 'obsidian-sync', 'remote-desktop'])}${jsonField('Scheduled jobs (name, schedule, prompt, skills, deliver)', 'design.cronJobs', { rows: 8 })}${jsonField('Knowledge seed notes (path and content)', 'design.kbSeed', { rows: 8 })}${renderOrgoAutomation()}` : ''}`;
+}
+
+function renderOrgoAutomation() {
+  const a = S.agent;
+  const job = S.orgoJob;
+  return `<section class="card"><h2>Automate with Orgo</h2><p class="hint">Use a client-owned workspace. A new computer uses 8 GB RAM and 4 vCPU, billed by Orgo to the client. Existing computer IDs above are reused.</p><button data-act="orgoWorkspaces">Load client workspaces</button><label class="f"><span>Client workspace</span><select id="orgoWorkspace"><option value="">Select a workspace</option>${(S.workspaces || []).map((w) => `<option value="${esc(w.id)}">${esc(w.name)}</option>`).join('')}</select></label><label class="choice"><input type="checkbox" id="previousRunChecked">I checked that any previous installer has finished before retrying.</label><button data-act="orgoStart" ${job?.status === 'running' ? 'disabled' : ''}>${a.deploy?.orgoComputerId ? 'Deploy to existing client VM' : 'Create client VM and deploy'}</button>
+    <p role="status" data-orgo-status>${esc(job?.status || 'idle')} ${job?.phase ? ': ' + esc(job.phase) : ''}</p><pre class="cmd" data-orgo-output>${esc((job?.events || []).map((e) => e.message).join('\n') + '\n' + (job?.output || ''))}</pre><p class="hint">If observation is interrupted, inspect the existing computer before retrying. No replacement computer is created automatically.</p></section>
+    <label class="choice"><input type="checkbox" data-boolean="weeklyReport.enabled" ${a.weeklyReport?.enabled ? 'checked' : ''}>Send the operator and client a weekly service report (Monday, machine timezone).</label>`;
+}
+
+function renderHermesExport() {
+  return window.ForgeDemo.exportsView(S.agent);
+  const a = S.agent, d = a.design;
+  if (!d) return `<p>Generate a design from the Brief before exporting.</p><button data-tab="brief">Go to Brief</button>`;
+  const report = a.deploy?.lastVerify;
+  const exported = S.exportResult;
+  return `<h2>Verify the client installation</h2><p class="hint">Paste the complete JSON printed by scripts/verify.sh on the VM. This is separate from the simulated Test chat.</p><label class="f"><span>Verification report</span><textarea id="verifyReport" rows="7" class="mono" placeholder="Paste verify.sh JSON here"></textarea></label><button data-act="importVerify">Import report</button>
+    ${report ? `<p><span class="badge ${report.ok ? 'pass' : 'fail'}">${report.ok ? 'All reported checks passed' : 'Needs attention'}</span> ${esc(report.at)}</p>${report.results.map((r) => `<p><b>${r.ok ? 'PASS' : 'FAIL'} ${esc(r.name)}</b>: ${esc(r.message)}</p>`).join('')}` : '<p class="hint">No VM verification report has been recorded.</p>'}
+    <section class="card" style="margin-top:20px"><h2>Export the Hermes bundle</h2><p>Contains SOUL, skills, operating rules, knowledge notes, setup scripts and the client RUNBOOK and operator HANDOVER. Credentials stay private.</p><div class="row">${busyButton('export', a.version ? 'Update bundle' : 'Export bundle', 'Exporting')}${a.exportPath || exported ? '<button data-act="openFolder">Open bundle folder</button>' : ''}</div>${exported ? `<p role="status">Exported v${exported.version}. ${exported.written.length} files written, ${exported.kept.length} operator edits kept.</p>${exported.warnings.map((w) => `<p class="hint">${esc(w)}</p>`).join('')}` : ''}</section>
+    <h2>Handover before ending the call</h2><p>Confirm three real channel scenarios, the first scheduled task, client account ownership, operator and client alert delivery, vault sync and independent backup. The generated RUNBOOK explains day-to-day use; HANDOVER records outstanding questions and verification.</p>${linesField('Questions still to confirm', 'design.openQuestions')}`;
+}
+
+function renderSkillCredentials(design) {
+  const fields = new Map((design?.skills || []).flatMap((s) => s.env || []).map((e) => [e.name, e]));
+  if (!fields.size) return '';
+  return `<section class="card" data-integration="skillSetup"><h2>Skill setup fields</h2>${[...fields.values()].map((e) => `<label class="f"><span>${esc(e.prompt || e.name)}</span><input type="password" data-secret="${esc(e.name)}" autocomplete="new-password" placeholder="${S.configured?.includes(e.name) ? 'Saved privately' : 'Enter client value'}"><p class="hint">${esc(e.help)}</p></label>`).join('')}<button data-act="saveConnection" style="margin-top:12px">Save skill setup privately</button></section>`;
+}
+
+function renderConnect() {
+  return window.ForgeDemo.connect(S.agent, S.catalog, esc) + (S.agent.design ? renderComposioApps(S.agent.design) : '');
+  const d = S.agent.design;
+  const selected = new Set(['openrouter', 'orgo', 'tailscale', 'healthchecks', d?.channel?.platform || 'telegram', ...(d?.integrations || [])]);
+  return `<h2>Connect client-owned accounts</h2><p class="hint">Save each account, then check its connection. Pairing and VM-only checks remain pending until deployment.</p>
+    ${d ? `<div class="row">${S.catalog.integrations.filter((i) => i.kind === 'mcp').map((i) => `<label class="choice"><input type="checkbox" data-integration-toggle="${i.id}" ${d.integrations.includes(i.id) ? 'checked' : ''}>${esc(i.name)}</label>`).join('')}</div>${selectField('Messaging channel', 'design.channel.platform', ['telegram', 'slack', 'discord', 'whatsapp'])}${linesField('Allowed users (one exact ID or phone number per line)', 'design.channel.allowedUsers')}${field('Home channel or chat ID', 'design.channel.homeChat')}` : ''}
+    ${S.catalog.integrations.filter((i) => selected.has(i.id)).map((i) => {
+      const result = S.connectResults?.[i.id];
+      return `<section class="card" data-integration="${esc(i.id)}"><div class="row"><h2>${esc(i.name)}</h2><span class="spacer"></span><a href="${esc(i.signupUrl)}" target="_blank" rel="noopener noreferrer">Create account</a><span class="badge ${result?.ok ? 'pass' : result?.status === 'invalid' || result?.status === 'error' ? 'fail' : 'wait'}">${esc(result?.status || 'Not checked')}</span></div>
+      <p class="hint">${esc(i.setupNotes)}</p>${i.env.map((v) => `<label class="f"><span>${esc(v.prompt)}</span><input type="password" autocomplete="new-password" data-secret="${esc(v.name)}" aria-label="${esc(v.prompt)}" placeholder="${S.configured?.includes(v.name) ? 'Saved privately. Enter a value to replace it.' : 'Paste the client value'}"><p class="hint">${esc(v.help)}</p></label>`).join('')}
+      ${d && i.kind === 'mcp' ? `${linesField('Approved production tool names (one per line)', 'design.mcpToolAllowlists.' + i.id, { rows: 3 })}${result?.availableTools ? `<p class="hint">Discovered tools: ${esc(result.availableTools.join(', '))}</p>` : ''}` : ''}
+      <div class="row" style="margin-top:12px"><button data-act="saveConnection">Save and validate</button><button data-act="saveConnection" data-save-only="true">Save privately</button><p role="status">${esc(result?.message || '')}</p></div></section>`;
+    }).join('')}
+    ${d ? renderComposioApps(d) : ''}${renderSkillCredentials(d)}
+    <section class="card" data-integration="monitoring"><h2>Operator and client alerts</h2><p class="hint">Choose separate destinations. Email fallback uses the client's SMTP account. Never rely only on the adapter being monitored.</p>${[['ALERT_WEBHOOK_URL', 'Operator Slack or Discord webhook'], ['CLIENT_ALERT_WEBHOOK_URL', 'Client Slack or Discord webhook'], ['ALERT_EMAIL', 'Operator email'], ['CLIENT_ALERT_EMAIL', 'Client email'], ['SMTP_HOST', 'SMTP host'], ['SMTP_PORT', 'SMTP port'], ['SMTP_USERNAME', 'SMTP username'], ['SMTP_PASSWORD', 'SMTP password'], ['SMTP_FROM', 'Sender email'], ['HERMES_TIMEZONE', 'Client timezone'], ['HERMES_DASHBOARD_BASIC_AUTH_USERNAME', 'Private dashboard username'], ['HERMES_DASHBOARD_BASIC_AUTH_PASSWORD', 'Private dashboard password'], ['HERMES_DASHBOARD_BASIC_AUTH_SECRET', 'Private dashboard session secret'], ['HEALTHCHECKS_AGENT_PING_URL', 'Optional separate agent-health heartbeat URL']].map(([name, label]) => `<label class="f"><span>${label}</span><input type="password" data-secret="${name}" autocomplete="new-password" placeholder="${S.configured?.includes(name) ? 'Saved privately' : 'Enter client setup value'}"></label>`).join('')}<button data-act="saveConnection" style="margin-top:12px">Save alert and dashboard setup</button></section>`;
+}
+
+function renderComposioApps(design) {
+  if (!design.integrations.includes('composio')) return '';
+  const choices = [['gmail', 'Gmail'], ['googlecalendar', 'Google Calendar'], ['googledrive', 'Google Drive'], ['slack', 'Slack'], ['notion', 'Notion'], ['hubspot', 'HubSpot']];
+  const selected = new Set(design.composioApps);
+  return `<section class="card"><h2>Apps the client uses</h2><p class="hint">Choose apps to plan this client's setup. Selection does not connect an account or grant tools. Complete OAuth and approve discovered tools separately.</p><div class="row">${choices.map(([id, label]) => `<label class="choice"><input type="checkbox" data-composio-app="${id}" ${selected.has(id) ? 'checked' : ''}>${label}</label>`).join('')}</div>${linesField('Selected apps and other app IDs (one per line)', 'design.composioApps', { rows: 3, hint: 'Keep other app IDs supplied by the client’s Composio dashboard.' })}</section>`;
+}
+
+function busyButton(key, label, busyLabel) {
+  return S.busy[key]
+    ? `<button class="primary" disabled>${busyLabel}… <span data-elapsed="${key}">0s</span></button>`
+    : `<button class="primary" data-act="${key}">${label}</button>`;
+}
+
+function codeProblem(code) {
+  if (!code || !code.trim()) return 'No code drafted yet.';
+  try { new AsyncFunction('args', 'env', code); return ''; } catch (e) { return e.message; }
+}
+
+function renderDesign() {
+  const d = S.agent.design;
+  if (!d) return `<div class="empty"><h2>No design yet</h2><p>Fill in the brief, then generate.</p><button data-tab="brief">Go to Brief</button></div>`;
+  if (S.agent.platform === 'hermes') return `<h2>Hermes identity and operating rules</h2>${field('SOUL.md', 'design.soul', { rows: 14 })}${field('AGENTS.md', 'design.agentsMd', { rows: 8 })}<p>${d.skills.length} skills selected. Review connections before deployment.</p>${linesField('Questions to confirm', 'design.openQuestions')}`;
+  return `
+    <div class="card">
+      <h2>Refine with AI</h2>
+      <p class="hint">Describe a change in plain words. The AI updates the whole design. You can also edit any field below by hand.</p>
+      <div class="row" style="margin-top:8px"><input id="refine" placeholder="e.g. Make the tone warmer, and add a tool to check insurance eligibility in Cliniko" style="flex:1">${busyButton('refine', 'Refine', 'Refining')}${S.undo?.agentId === S.agent.id && !S.busy.refine ? '<button data-act="undo" title="Go back to the design before the last AI change">Undo last AI change</button>' : ''}</div>
+    </div>
+    ${d.openQuestions?.length ? `<div class="callout warn"><div class="row"><b>Confirm with the client (${d.openQuestions.length})</b><span class="spacer"></span><button class="small" data-act="copyQuestions">Copy as list</button></div><ul style="margin:6px 0 0;padding-left:18px">${d.openQuestions.map((q) => `<li>${esc(q)}</li>`).join('')}</ul></div>` : ''}
+    <div class="card">
+      ${field('Summary', 'design.summary', { rows: 2 })}
+      ${field('System prompt', 'design.systemPrompt', { rows: 18, mono: true, hint: 'Look for [CONFIRM: …] placeholders: facts the AI needs from the client.' })}
+      ${linesField('Guardrails (one rule per line)', 'design.guardrails', { rows: 5, hint: 'Added to the end of the system prompt at runtime.' })}
+      ${linesField('Open questions for the client (one per line)', 'design.openQuestions', { rows: 3 })}
+    </div>
+    <div class="card">
+      <div class="row"><h2>Tools &amp; integrations (${d.tools.length})</h2><span class="spacer"></span><button class="small" data-act="addTool">+ Add tool</button></div>
+      <p class="hint">Each tool connects the agent to one of the client's systems. In testing, tools return their sample response, so nothing real is touched.</p>
+      ${d.tools.map((t, i) => {
+        const p = codeProblem(t.implementation);
+        return `<div class="tool">
+          <div class="grid2">${field('Tool name', `design.tools.${i}.name`, { mono: true })}${field('Connects to', `design.tools.${i}.system`, { ph: 'HubSpot CRM' })}</div>
+          ${field('What it does / when the agent should use it', `design.tools.${i}.description`, { rows: 2 })}
+          <p class="hint" data-code-msg="${i}" style="color:${p ? 'var(--warn)' : 'var(--ok)'}">${p ? '⚠ Integration code: ' + esc(p) : '✓ Integration code drafted'}${t.envVars?.length ? ' · needs ' + esc(t.envVars.join(', ')) : ''}</p>
+          <details><summary>Technical details</summary>
+            <div class="grid2">${jsonField('Inputs (JSON Schema)', `design.tools.${i}.parameters`, { rows: 8 })}${jsonField('Sample response (used in tests)', `design.tools.${i}.sampleResponse`, { rows: 8 })}</div>
+            <label class="f"><span>Credentials / env vars (comma separated)</span><input data-csv="design.tools.${i}.envVars" class="mono" value="${esc((t.envVars || []).join(', '))}"></label>
+            ${field('Integration code: body of async function (args, env)', `design.tools.${i}.implementation`, { rows: 12, mono: true, hint: 'AI-drafted. Exported to src/tools/' + esc(t.name) + '.js once; after that the file is yours.' })}
+            ${field('Setup notes for the developer', `design.tools.${i}.setupNotes`, { rows: 3 })}
+          </details>
+          <div class="row" style="margin-top:8px"><span class="spacer"></span><button class="small danger" data-act="removeTool" data-i="${i}">Remove tool</button></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card">
+      <div class="row"><h2>Test scenarios (${d.scenarios.length})</h2><span class="spacer"></span><button class="small" data-act="addScenario">+ Add scenario</button></div>
+      <p class="hint">Run these on the Test tab. They're also exported, so <code>npm test</code> works on the client's server.</p>
+      <div class="scen hint" style="margin-top:10px"><b>Name</b><b>User says</b><b>Expected behaviour</b><span></span></div>
+      ${d.scenarios.map((s, i) => `<div class="scen">
+        <input data-bind="design.scenarios.${i}.name" value="${esc(s.name)}">
+        <textarea rows="2" data-bind="design.scenarios.${i}.userMessage">${esc(s.userMessage)}</textarea>
+        <textarea rows="2" data-bind="design.scenarios.${i}.expected">${esc(s.expected)}</textarea>
+        <button class="small danger" data-act="removeScenario" data-i="${i}" title="Remove">✕</button></div>`).join('')}
+    </div>`;
+}
+
+function renderTest() {
+  if (!S.agent.design) return `<div class="empty"><h2>Nothing to test yet</h2><p>Generate a design first.</p><button data-tab="brief">Go to Brief</button></div>`;
+  return `
+    <div class="card">
+      <div class="row">${field('Model for this agent', 'model', { ph: S.settings.testModel || 'Set a test model in Settings', list: 'models', hint: 'Blank uses your default test model. This model is also written into the export.' }).replace('class="f"', 'class="f" style="flex:1;margin:0"')}</div>
+    </div>
+    <div class="card">
+      <div class="row"><h2>Try it</h2><span class="spacer"></span><button class="small" data-act="resetChat">Reset chat</button></div>
+      <p class="hint">Talk to the agent as the client's customer or staff would. Tools return their sample responses.</p>
+      <div class="chat" id="chat" style="margin-top:10px"></div>
+      <form class="row" id="chatForm" style="margin-top:10px"><input id="chatInput" placeholder="Type a message…" autocomplete="off" style="flex:1"><button class="primary" id="chatSend">Send</button></form>
+    </div>
+    <div class="card">
+      <div class="row"><h2>Test scenarios</h2><span class="spacer"></span><span class="status" id="resultSummary"></span>${busyButton('runAll', 'Run all scenarios', 'Running')}</div>
+      <p class="hint">Scenario previews are scripted examples. No model or grader runs, and the results do not assess answer quality.</p>
+      <div id="results"></div>
+    </div>`;
+}
+
+function renderChat() {
+  const box = $('#chat');
+  if (!box) return;
+  box.innerHTML = S.chatView.length ? S.chatView.map((v) => {
+    if (v.kind === 'tool') return `<details class="toolcall"><summary>🔧 ${esc(v.name)} called</summary><pre class="mono">input:  ${esc(JSON.stringify(v.args, null, 2))}\nresult: ${esc(JSON.stringify(v.result, null, 2))}</pre></details>`;
+    return `<div class="msg ${v.kind}">${esc(v.text)}</div>`;
+  }).join('') : `<p class="hint" style="margin:auto">Say hello to start.</p>`;
+  if (S.busy.chat) box.innerHTML += `<div class="msg agent">…</div>`;
+  box.scrollTop = box.scrollHeight;
+}
+
+function renderResults() {
+  const box = $('#results');
+  if (!box) return;
+  const scen = S.agent.design.scenarios;
+  box.innerHTML = scen.map((s, i) => {
+    const r = S.results[i];
+    const badge = !r ? '<span class="badge wait">not run</span>' : r.status === 'running' ? '<span class="badge wait">running…</span>' : r.status === 'error' ? '<span class="badge fail">error</span>' : r.pass === true ? '<span class="badge pass">pass</span>' : r.pass === false ? '<span class="badge fail">fail</span>' : '<span class="badge wait">demo preview · not graded</span>';
+    const detail = r && r.status !== 'running' ? `<p class="hint">${esc(r.reason || '')}</p>${r.reply != null ? `<details><summary>See conversation</summary><pre class="mono">${esc(r.transcript || r.reply)}</pre></details>` : ''}` : '';
+    return `<div class="result"><div class="row">${badge}<b>${esc(s.name || 'Scenario ' + (i + 1))}</b><span class="spacer"></span>${S.busy.runAll ? '' : `<button class="small" data-act="runOne" data-i="${i}">Run</button>`}</div><p class="hint">“${esc(s.userMessage)}” → ${esc(s.expected)}</p>${detail}</div>`;
+  }).join('') || '<p class="hint">No scenarios. Add some on the Design tab.</p>';
+  const done = S.results.filter((r) => r && r.status === 'done');
+  $('#resultSummary').textContent = done.length ? `${done.length}/${scen.length} previewed · not graded` : '';
+}
+
+function renderExport() {
+  const a = S.agent, d = a.design;
+  if (a.platform === 'hermes') return renderHermesExport();
+  if (!d) return `<div class="empty"><h2>Nothing to export yet</h2><p>Generate a design first.</p><button data-tab="brief">Go to Brief</button></div>`;
+  const badCode = d.tools.filter((t) => codeProblem(t.implementation));
+  const t = a.lastTest;
+  const checks = [
+    [true, 'Design ready', `${d.tools.length} tools, ${d.scenarios.length} scenarios`],
+    [t && t.passed === t.total ? true : t ? 'warn' : 'warn', 'Tests', t ? `${t.passed}/${t.total} passed on ${new Date(t.at).toLocaleString()}` : 'Not run yet. Run them on the Test tab.'],
+    [d.openQuestions.length ? 'warn' : true, 'Open questions', d.openQuestions.length ? `${d.openQuestions.length} still to confirm with the client` : 'None'],
+    [badCode.length ? 'warn' : true, 'Integration code', badCode.length ? `Needs hand-finishing: ${badCode.map((x) => x.name).join(', ')}` : 'All tools have drafted code'],
+  ];
+  const r = S.exportResult;
+  const path = r?.dir || a.exportPath;
+  const slug = r?.slug || a.exportSlug || 'your-agent';
+  return `
+    <div class="card"><h2>Ready to ship?</h2><p class="hint">Warnings don't block export. They're a checklist.</p>
+      ${checks.map(([ok, label, text]) => `<div class="check"><span class="i">${ok === true ? '✅' : '⚠️'}</span><div><b>${label}</b><div class="hint" style="margin:0">${esc(text)}</div></div></div>`).join('')}
+    </div>
+    <div class="card">
+      <h2>Export as a git repo</h2>
+      <p class="hint">Writes a ready-to-run project into <span class="mono">${esc(S.settings.exportDir)}</span> and commits it. Re-exporting updates the same repo. Tool files your developer has edited are never overwritten.</p>
+      <div class="row" style="margin-top:12px">${busyButton('export', a.version ? `Update repo (v${a.version + 1})` : 'Export repo (v1)', 'Exporting')}${path ? `<button data-act="openFolder">Open folder</button>` : ''}</div>
+      ${r ? `<div class="callout ok" style="margin-top:14px">Exported v${r.version} to <span class="mono">${esc(r.dir)}</span>. ${r.written.length} files written${r.kept.length ? `, ${r.kept.length} kept as they were` : ''}.</div>${r.warnings.length ? `<div class="callout warn"><b>Check these</b><ul style="margin:6px 0 0;padding-left:18px">${r.warnings.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>` : ''}` : a.lastExport ? `<p class="hint" style="margin-top:10px">Last exported v${a.version} on ${new Date(a.lastExport).toLocaleString()}.</p>` : ''}
+    </div>
+    ${path ? `<div class="card">
+      <h2>Next steps</h2>
+      <p style="margin:10px 0 0"><b>1. Push to GitHub.</b> First time: create an empty private repo on GitHub named <span class="mono">${esc(slug)}</span>, then run:</p>
+      ${cmd(`cd "${path}"\ngit remote add origin https://github.com/YOUR-ACCOUNT/${slug}.git\ngit push -u origin main`)}
+      <p class="hint">After later exports, just run <span class="mono">git push</span> in that folder.</p>
+      <p style="margin:14px 0 0"><b>2. On the client's server</b> (needs Node 18+ or Docker):</p>
+      ${cmd(`git clone https://github.com/YOUR-ACCOUNT/${slug}.git\ncd ${slug}\ncp .env.example .env    # fill in keys; starts with MOCK_TOOLS=true\nnpm test\nnpm start`)}
+      <p class="hint">Updates: <span class="mono">git pull</span>, then restart. The repo's README has the details, the tool list and the open questions.</p>
+    </div>` : ''}`;
+}
+function cmd(text) { return `<pre class="cmd mono">${esc(text)}</pre><button class="small" data-copy="${esc(text)}">Copy</button>`; }
+
+// ---------- settings ----------
+const PROVIDER_LABELS = { openrouter: 'OpenRouter (one key, every model)', openai: 'OpenAI', anthropic: 'Anthropic', ollama: 'Ollama (free, runs on this computer)', custom: 'Other OpenAI-compatible API' };
+function renderSettings() {
+  $('#modal').innerHTML = window.ForgeDemo.settingsView(); return;
+  const s = S.settings;
+  const hint = s.keyHints[s.provider];
+  $('#modal').innerHTML = `<div class="modal-bg" data-act="closeSettingsBg"><div class="modal">
+    <h2>Settings</h2><p class="hint">Saved in this app's data folder on your computer. Keys are only sent to the provider you pick.</p>
+    <div class="card" style="margin-top:14px;background:var(--soft)">
+      <h2>1 · Design builder</h2><p class="hint">What writes the agent designs. Using your Claude subscription costs nothing extra.</p>
+      <label class="f"><span>Use</span><select id="sSource"><option value="claude" ${s.builderSource === 'claude' ? 'selected' : ''}>My Claude subscription (Claude Code)</option><option value="api" ${s.builderSource === 'api' ? 'selected' : ''}>An API key (provider below)</option></select></label>
+      <div id="sClaudeBox" style="display:${s.builderSource === 'claude' ? 'block' : 'none'}">
+        <label class="f"><span>Claude model</span><input id="sClaudeModel" class="mono" list="claudeModels" value="${esc(s.claudeModel)}"><datalist id="claudeModels"><option value="opus"><option value="sonnet"><option value="haiku"></datalist><p class="hint">opus = best designs, sonnet = faster. Or a full model name.</p></label>
+        <div class="row" style="margin-top:8px"><button class="small" data-act="checkClaude">Check sign-in</button><span class="hint" id="claudeMsg" style="margin:0"></span></div>
+      </div>
+    </div>
+    <h2 style="margin-top:18px;font-size:15px">2 · The agent's model</h2><p class="hint">What the finished agent runs on, in your tests and at the client. This needs an API key (or Ollama).</p>
+    <label class="f"><span>Model provider</span><select id="sProvider">${Object.entries(PROVIDER_LABELS).map(([k, l]) => `<option value="${k}" ${s.provider === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+    <label class="f"><span>API address</span><input id="sBaseUrl" class="mono" value="${esc(s.baseUrl)}"></label>
+    <label class="f"><span>API key</span><input id="sKey" type="password" autocomplete="off" placeholder="${hint ? `Saved (${esc(hint)}). Leave blank to keep it.` : s.provider === 'ollama' ? 'Not needed for Ollama' : 'Paste your key'}">
+      ${hint ? `<p class="hint"><button class="link" data-act="clearKey">Remove saved key</button></p>` : ''}</label>
+    <div class="row" style="margin-top:12px"><button class="small" data-act="loadModels">Load model list</button><span class="hint" id="modelsMsg" style="margin:0">${S.models.length ? S.models.length + ' models loaded' : 'Loads the models your key can use, as suggestions below.'}</span></div>
+    <div id="sApiBuilderBox" style="display:${s.builderSource === 'api' ? 'block' : 'none'}"><label class="f"><span>Builder model (API)</span><input id="sBuilder" class="mono" list="models" value="${esc(s.builderModel)}" placeholder="e.g. anthropic/claude-sonnet-5.5"><p class="hint">Writes the agent designs when the design builder is set to an API key.</p></label></div>
+    <label class="f"><span>Default test model</span><input id="sTest" class="mono" list="models" value="${esc(s.testModel)}"><p class="hint">Runs agents on the Test tab and goes into exports. Pick what the client will run in production.</p></label>
+    <label class="f"><span>Export folder</span><input id="sExport" class="mono" value="${esc(s.exportDir)}"></label>
+    <div class="row" style="margin-top:18px"><button data-act="testConnection">Test connection</button><span class="spacer"></span><button data-act="closeSettings">Cancel</button><button class="primary" data-act="saveSettings">Save</button></div>
+  </div></div>`;
+}
+function settingsForm() {
+  return { builderSource: $('#sSource').value, claudeModel: $('#sClaudeModel').value, baseUrl: $('#sBaseUrl').value, apiKey: $('#sKey').value, builderModel: $('#sBuilder').value, testModel: $('#sTest').value, exportDir: $('#sExport').value };
+}
+function fillModels(list) { S.models = list; $('#models').innerHTML = list.map((m) => `<option value="${esc(m)}">`).join(''); }
+
+// ---------- actions ----------
+const timers = {};
+function startBusy(key) {
+  S.busy[key] = Date.now();
+  timers[key] = setInterval(() => document.querySelectorAll(`[data-elapsed="${key}"]`).forEach((el) => (el.textContent = Math.round((Date.now() - S.busy[key]) / 1000) + 's')), 1000);
+}
+function stopBusy(key) { clearInterval(timers[key]); delete S.busy[key]; }
+
+async function runScenarios(indexes) {
+  const agent = S.agent;
+  startBusy('runAll'); render();
+  for (const i of indexes) {
+    if (S.agent !== agent) break;
+    S.results[i] = { status: 'running' }; renderResults();
+    try { S.results[i] = { status: 'done', ...(await api('POST', '/api/scenario', { agent, index: i })) }; }
+    catch (e) { S.results[i] = { status: 'error', reason: e.message }; }
+    if (S.agent === agent) renderResults();
+  }
+  stopBusy('runAll');
+  if (S.agent !== agent) return;
+  const total = agent.design.scenarios.length;
+  agent.lastTest = { at: new Date().toISOString(), total, passed: S.results.filter((r) => r?.status === 'done' && r.pass === true).length, results: S.results.slice(0, total) };
+  saveNow(); render();
+}
+
+const actions = {
+  async resetDemo() { if (!confirm('Reset this browser’s demo clients and skills? Download any sample design you want to keep first.')) return; await flushSave(); const result = await api('POST', '/api/demo/reset'); S.agent = null; S.catalog = await api('GET', '/api/catalog'); await refreshList(); await openAgent(result.id); toast('Original sample data restored.'); },
+  async orgoWorkspaces() { S.workspaces = (await api('GET', '/api/orgo/workspaces?id=' + S.agent.id)).workspaces; render(); },
+  async orgoStart() {
+    const workspaceId = $('#orgoWorkspace').value;
+    const previousRunChecked = $('#previousRunChecked').checked;
+    if (!workspaceId) return toast('Select the client workspace first.', true);
+    await flushSave();
+    if (!confirm(S.agent.deploy?.orgoComputerId ? 'Run the deploy script on this existing client computer?' : 'Create an Orgo computer with 8 GB RAM and 4 vCPU in the client account, then deploy? Orgo bills the client for this computer.')) return;
+    const queued = await api('POST', '/api/orgo/start', { id: S.agent.id, workspaceId, computerId: S.agent.deploy?.orgoComputerId || '', previousRunChecked });
+    S.orgoJob = queued; render();
+  },
+  async preflight() { await flushSave(); S.preflight = (await api('POST', '/api/preflight', { id: S.agent.id })).text; render(); },
+  async soul() {
+    const a = S.agent;
+    startBusy('soul'); render();
+    try {
+      if (!a.design) a.design = (await api('POST', '/api/generate', { agent: a })).design;
+      const result = await api('POST', '/api/soul', { soulInputs: a.soulInputs, brief: a.brief });
+      a.design.soul = result.soul;
+      if (result.warnings.length) toast(result.warnings.join(' '), true);
+      await saveNow();
+    } finally { stopBusy('soul'); render(); }
+  },
+  async refineSoul() {
+    const instruction = $('#soulRefine').value.trim();
+    if (!instruction) return toast('Describe what should change.', true);
+    const a = S.agent;
+    a.design.soul = (await api('POST', '/api/soul', { soulInputs: a.soulInputs, brief: a.brief, soul: a.design.soul, instruction })).soul;
+    await saveNow(); render();
+  },
+  addCatalogSkill() {
+    const skill = S.catalog.skills.find((s) => s.name === $('#catalogSkill').value);
+    if (S.agent.design.skills.some((s) => s.name === skill.name)) return toast('That skill is already selected.');
+    S.agent.design.skills.push(structuredClone(skill)); scheduleSave(); render();
+  },
+  async draftSkill() {
+    const prompt = $('#skillPrompt').value.trim();
+    if (!prompt) return toast('Describe the skill first.', true);
+    startBusy('draftSkill'); render();
+    try { S.agent.design.skills.push((await api('POST', '/api/skill/draft', { prompt })).skill); await saveNow(); }
+    finally { stopBusy('draftSkill'); render(); }
+  },
+  async saveSkill(el) { await api('POST', '/api/skill/catalog', { skill: S.agent.design.skills[+el.dataset.i] }); S.catalog = await api('GET', '/api/catalog'); toast('Skill saved to the reusable catalog.'); },
+  removeSkill(el) { S.agent.design.skills.splice(+el.dataset.i, 1); scheduleSave(); render(); },
+  startCall() { S.agent.callStartedAt = new Date().toISOString(); scheduleSave(); render(); },
+  async readiness() { await flushSave(); S.readiness = (await api('GET', '/api/deploy/readiness?id=' + S.agent.id)).missing; if (!S.readiness.length) toast('Setup values are ready to build. Live verification is still required.'); render(); },
+  async buildDeploy() {
+    await flushSave(); startBusy('buildDeploy'); render();
+    try { S.deployDownload = await api('POST', '/api/deploy/build', { id: S.agent.id }); }
+    finally { stopBusy('buildDeploy'); render(); }
+  },
+  async confirmDeploy() { await api('POST', '/api/deploy/confirm', { id: S.agent.id }); S.deployDownload = null; toast('Local deployment script deleted.'); render(); },
+  async importVerify() {
+    let report;
+    try { report = JSON.parse($('#verifyReport').value); } catch { return toast('Paste valid verify.sh JSON.', true); }
+    S.agent.deploy ||= {};
+    S.agent.deploy.lastVerify = (await api('POST', '/api/verify', { id: S.agent.id, report })).report;
+    render();
+  },
+  async saveConnection(el) {
+    const card = el.closest('[data-integration]');
+    const values = {};
+    card.querySelectorAll('[data-secret]').forEach((input) => { if (input.value) values[input.dataset.secret] = input.value; });
+    if (Object.keys(values).length) {
+      S.configured = (await api('POST', '/api/secrets', { id: S.agent.id, values })).configured;
+      card.querySelectorAll('[data-secret]').forEach((input) => { input.value = ''; });
+    }
+    const id = card.dataset.integration;
+    if (id === 'monitoring' || id === 'skillSetup' || el.dataset.saveOnly) { toast('Setup saved privately.'); return render(); }
+    S.connectResults ||= {};
+    S.connectResults[id] = (await api('POST', '/api/validate', { id: S.agent.id, integrations: [id] })).results[0];
+    render();
+  },
+  async new() { await flushSave(); const a = await api('POST', '/api/agents'); await refreshList(); await openAgent(a.id); $('[data-bind="client.name"]')?.focus(); },
+  async duplicate() {
+    await flushSave();
+    const a = await api('POST', '/api/agent/duplicate', { id: S.agent.id });
+    await refreshList(); await openAgent(a.id); S.tab = 'brief'; render();
+    toast('Copied. Fill in the new client details.');
+  },
+  async delete() {
+    if (!confirm(`Delete "${agentTitle(S.agent)}"? It moves to the data/trash folder, so you can still recover it.`)) return;
+    clearTimeout(saveTimer); saveTimer = null;
+    await api('POST', '/api/agent/delete', { id: S.agent.id });
+    S.agent = null; await refreshList(); render();
+  },
+  async generate() {
+    const a = S.agent;
+    if (!a.brief.goal.trim() && !a.brief.notes.trim()) return toast('Add at least a goal or some discovery notes first.', true);
+    if (!S.settings.builderReady) { toast('Set up the design builder first.', true); return actions.settings(); }
+    if (a.design && !confirm('Replace the current design with a new one? Your manual edits to it will be lost. (Use Refine on the Design tab to change it instead.)')) return;
+    startBusy('generate'); render();
+    try {
+      const { design, warnings = [] } = await api('POST', '/api/generate', { agent: a, referenceId: a.referenceId || undefined });
+      if (warnings.length) toast(warnings.join(' '), true);
+      if (a.design) S.undo = { agentId: a.id, design: a.design, lastTest: a.lastTest };
+      a.design = design;
+      if (!a.brief.agentName) a.brief.agentName = design.agentName;
+      if (a.platform === 'hermes' && !a.soulInputs.agentName) a.soulInputs.agentName = design.agentName;
+      a.lastTest = null; S.results = [];
+      await saveNow();
+      if (S.agent === a) S.tab = a.platform === 'hermes' ? 'soul' : 'design';
+      toast(design.openQuestions.length ? `Design ready. ${design.openQuestions.length} questions to confirm with the client.` : 'Design ready.');
+    } catch (e) { toast(e.message, true); }
+    stopBusy('generate'); render(); updateTitle();
+  },
+  async refine() {
+    const instruction = $('#refine').value.trim();
+    if (!instruction) return toast('Describe what to change first.', true);
+    const a = S.agent;
+    startBusy('refine'); render();
+    try {
+      const { design, kept } = await api('POST', '/api/generate', { agent: a, instruction });
+      S.undo = { agentId: a.id, design: a.design, lastTest: a.lastTest };
+      a.design = design; a.lastTest = null; S.results = [];
+      await saveNow();
+      toast(kept.length ? `Design updated. The model dropped the ${kept.join(', ')}, so the previous ones were kept.` : 'Design updated. Re-run your tests.');
+    } catch (e) { toast(e.message, true); setTimeout(() => { const r = $('#refine'); if (r) r.value = instruction; }); }
+    stopBusy('refine'); render();
+  },
+  undo() {
+    const a = S.agent;
+    a.design = S.undo.design; a.lastTest = S.undo.lastTest; S.results = a.lastTest?.results || []; S.undo = null;
+    saveNow(); render(); toast('Previous design restored.');
+  },
+  copyQuestions() {
+    const qs = S.agent.design.openQuestions;
+    navigator.clipboard.writeText(qs.map((q, i) => `${i + 1}. ${q}`).join('\n'));
+    toast('Questions copied. Paste them into your email to the client.');
+  },
+  addTool() {
+    S.agent.design.tools.push({ name: 'new_tool', description: '', system: '', parameters: { type: 'object', properties: {}, required: [] }, sampleResponse: { ok: true }, envVars: [], implementation: '', setupNotes: '' });
+    normalizeToolNames(); scheduleSave(); render();
+  },
+  removeTool(el) { if (confirm('Remove this tool?')) { S.agent.design.tools.splice(+el.dataset.i, 1); scheduleSave(); render(); } },
+  addScenario() { S.agent.design.scenarios.push({ name: '', userMessage: '', expected: '' }); scheduleSave(); render(); },
+  removeScenario(el) { S.agent.design.scenarios.splice(+el.dataset.i, 1); S.results.splice(+el.dataset.i, 1); scheduleSave(); render(); },
+  resetChat() { S.chat = []; S.chatView = []; renderChat(); },
+  runAll() {
+    const n = S.agent.design.scenarios.filter((s) => s.userMessage.trim()).length;
+    if (!n) return toast('Add a scenario with a user message first.', true);
+    S.results = [];
+    runScenarios(S.agent.design.scenarios.map((s, i) => i).filter((i) => S.agent.design.scenarios[i].userMessage.trim()));
+  },
+  runOne(el) { runScenarios([+el.dataset.i]); },
+  async export() {
+    await flushSave();
+    startBusy('export'); render();
+    try {
+      const r = await api('POST', '/api/export', { id: S.agent.id });
+      S.exportResult = r;
+      const fresh = await api('GET', '/api/agent?id=' + S.agent.id);
+      Object.assign(S.agent, { version: fresh.version, exportPath: fresh.exportPath, exportSlug: fresh.exportSlug, lastExport: fresh.lastExport, model: fresh.model });
+      updateListItem(S.agent);
+      toast('Sample JSON downloaded. No deployable bundle was created.');
+    } catch (e) { toast(e.message, true); }
+    stopBusy('export'); render();
+  },
+  async openFolder() { try { await api('POST', '/api/open-folder', { path: S.exportResult?.dir || S.agent.exportPath }); } catch (e) { toast(e.message, true); } },
+  settings() { renderSettings(); },
+  closeSettings() { $('#modal').innerHTML = ''; },
+  closeSettingsBg(el, ev) { if (ev.target === el) $('#modal').innerHTML = ''; },
+  async saveSettings() {
+    try {
+      S.settings = await api('POST', '/api/settings', settingsForm());
+      $('#modal').innerHTML = ''; toast('Settings saved.'); render();
+    } catch (e) { toast(e.message, true); }
+  },
+  async checkClaude() {
+    const msg = $('#claudeMsg'); msg.textContent = 'Checking…'; msg.style.color = '';
+    try {
+      const c = await api('GET', '/api/claude-status');
+      if (!c.installed) { msg.textContent = 'Claude Code is not installed on this computer. Install it from claude.com/code.'; msg.style.color = 'var(--bad)'; }
+      else if (!c.loggedIn) { msg.innerHTML = 'Not signed in. Open a terminal, run <b class="mono">claude auth login</b>, sign in, then click Check again.'; msg.style.color = 'var(--bad)'; }
+      else { msg.textContent = '✓ Signed in' + (c.email ? ' as ' + c.email : '') + (c.plan ? ' (' + c.plan + ')' : ''); msg.style.color = 'var(--ok)'; }
+    } catch (e) { msg.textContent = e.message; msg.style.color = 'var(--bad)'; }
+  },
+  async clearKey() { S.settings = await api('POST', '/api/settings', { clearKey: true }); renderSettings(); },
+  async loadModels() {
+    $('#modelsMsg').textContent = 'Loading…';
+    try {
+      S.settings = await api('POST', '/api/settings', settingsForm());
+      const { models } = await api('GET', '/api/models');
+      fillModels(models);
+      $('#modelsMsg').textContent = `${models.length} models loaded. Start typing in the fields below to pick one.`;
+      if ($('#sKey').value) { $('#sKey').value = ''; $('#sKey').placeholder = 'Saved. Leave blank to keep it.'; }
+    } catch (e) { $('#modelsMsg').textContent = e.message; }
+  },
+  async testConnection() {
+    try {
+      S.settings = await api('POST', '/api/settings', settingsForm());
+      $('#sKey').value = '';
+      const { models } = await api('GET', '/api/models');
+      fillModels(models);
+      const missing = [S.settings.builderSource === 'api' ? S.settings.builderModel : '', S.settings.testModel].filter((m) => m && models.length && !models.includes(m));
+      toast(missing.length ? `Connected, but these model names weren't found: ${missing.join(', ')}` : `Connected. ${models.length} models available.`, missing.length > 0);
+    } catch (e) { toast(e.message, true); }
+  },
+};
+
+function normalizeToolNames() {
+  const taken = new Set();
+  for (const t of S.agent.design.tools) {
+    let n = String(t.name || 'tool').toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'tool';
+    if (/^[0-9]/.test(n)) n = 't_' + n;
+    let u = n; for (let i = 2; taken.has(u); i++) u = `${n}_${i}`;
+    taken.add(u); t.name = u;
+  }
+}
+
+// ---------- events ----------
+document.addEventListener('click', async (ev) => {
+  const el = ev.target.closest('[data-act],[data-tab],[data-open],[data-copy]');
+  if (!el) return;
+  if (el.dataset.copy != null) { navigator.clipboard.writeText(el.dataset.copy); return toast('Copied.'); }
+  if (el.dataset.open) return openAgent(el.dataset.open).catch((e) => toast(e.message, true));
+  if (el.dataset.tab) { S.tab = el.dataset.tab; render(); $('main').scrollTop = 0; return; }
+  if (el.tagName === 'BUTTON') ev.preventDefault();
+  try { await actions[el.dataset.act](el, ev); } catch (e) { toast(e.message, true); }
+});
+
+function onEdit(ev) {
+  const el = ev.target;
+  if (!S.agent) return;
+  if (el.id === 'presetPicker') {
+    S.agent.preset = el.value;
+    const preset = S.catalog.presets.find((p) => p.id === el.value);
+    if (preset) {
+      S.agent.soulInputs = { ...S.agent.soulInputs, ...structuredClone(preset.soulInputs) };
+      if (S.agent.design && !S.agent.design.skills.length) S.agent.design.skills = preset.skills.map((n) => structuredClone(S.catalog.skills.find((s) => s.name === n)));
+    }
+    scheduleSave(); return;
+  }
+  if (el.dataset.integrationToggle) {
+    const ids = new Set(S.agent.design.integrations);
+    if (el.checked) ids.add(el.dataset.integrationToggle); else ids.delete(el.dataset.integrationToggle);
+    S.agent.design.integrations = [...ids]; scheduleSave(); render(); return;
+  }
+  if (el.dataset.composioApp) {
+    const apps = new Set(S.agent.design.composioApps);
+    if (el.checked) apps.add(el.dataset.composioApp); else apps.delete(el.dataset.composioApp);
+    S.agent.design.composioApps = [...apps]; scheduleSave(); render(); return;
+  }
+  if (el.dataset.callStep) { S.agent.callChecklist ||= {}; S.agent.callChecklist[el.dataset.callStep] = el.checked; scheduleSave(); return; }
+  if (el.dataset.boolean) { setPath(S.agent, el.dataset.boolean, el.checked); scheduleSave(); return; }
+  if (el.dataset.bind) {
+    setPath(S.agent, el.dataset.bind, el.value);
+    if (el.dataset.bind === 'brief.channel' && S.agent.design?.channel) S.agent.design.channel.platform = el.value;
+    if (el.dataset.bind === 'design.channel.platform' && ev.type === 'change') { scheduleSave(); render(); return; }
+    const skillMatch = el.dataset.bind.match(/^design\.skills\.(\d+)\.(name|description)$/);
+    if (skillMatch) {
+      const skill = S.agent.design.skills[+skillMatch[1]];
+      const hint = document.querySelector(`[data-skill-warning="${skillMatch[1]}"]`);
+      if (hint) hint.textContent = skill.description.length > 60 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(skill.name) ? 'Use a kebab-case name and a description of up to 60 characters.' : 'Ready to save.';
+    }
+    if (/^(client\.name|brief\.agentName)$/.test(el.dataset.bind)) { updateTitle(); updateListItem(S.agent); }
+    const m = el.dataset.bind.match(/^design\.tools\.(\d+)\.implementation$/);
+    if (m) {
+      const p = codeProblem(el.value), msg = document.querySelector(`[data-code-msg="${m[1]}"]`);
+      if (msg) { msg.textContent = p ? '⚠ Integration code: ' + p : '✓ Integration code drafted'; msg.style.color = p ? 'var(--warn)' : 'var(--ok)'; }
+    }
+    if (/^design\.tools\.\d+\.name$/.test(el.dataset.bind) && ev.type === 'change') { normalizeToolNames(); el.value = getPath(S.agent, el.dataset.bind); }
+  } else if (el.dataset.lines) {
+    setPath(S.agent, el.dataset.lines, el.value.split('\n').map((s) => s.trim()).filter(Boolean));
+    if (el.dataset.lines === 'design.composioApps' && ev.type === 'change') { scheduleSave(); render(); return; }
+  } else if (el.dataset.csv) {
+    setPath(S.agent, el.dataset.csv, el.value.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean));
+  } else if (el.dataset.json) {
+    const msg = document.querySelector(`[data-json-msg="${el.dataset.json}"]`);
+    try { setPath(S.agent, el.dataset.json, JSON.parse(el.value)); el.classList.remove('invalid'); if (msg) msg.textContent = ''; }
+    catch (e) { el.classList.add('invalid'); if (msg) msg.textContent = 'Not valid JSON yet, so this field is not saved: ' + e.message; return; }
+  } else return;
+  scheduleSave();
+}
+document.addEventListener('input', onEdit);
+document.addEventListener('change', onEdit);
+
+document.addEventListener('submit', async (ev) => {
+  if (ev.target.id !== 'chatForm') return;
+  ev.preventDefault();
+  const input = $('#chatInput'), text = input.value.trim();
+  if (!text || S.busy.chat) return;
+  const agent = S.agent;
+  input.value = '';
+  S.chat.push({ role: 'user', content: text });
+  S.chatView.push({ kind: 'user', text });
+  S.busy.chat = true; renderChat();
+  try {
+    const r = await api('POST', '/api/chat', { agent, messages: S.chat });
+    if (S.agent !== agent) return;
+    S.chat.push(...r.messages);
+    for (const c of r.toolCalls) S.chatView.push({ kind: 'tool', ...c });
+    S.chatView.push({ kind: 'agent', text: r.reply || '(empty reply)' });
+  } catch (e) {
+    S.chat.pop(); S.chatView.pop();
+    S.chatView.push({ kind: 'error', text: e.message });
+    input.value = text;
+  }
+  delete S.busy.chat; renderChat(); $('#chatInput')?.focus();
+});
+
+document.addEventListener('change', (ev) => {
+  if (ev.target.id !== 'sSource') return;
+  const claude = ev.target.value === 'claude';
+  $('#sClaudeBox').style.display = claude ? 'block' : 'none';
+  $('#sApiBuilderBox').style.display = claude ? 'none' : 'block';
+});
+document.addEventListener('change', async (ev) => {
+  if (ev.target.id !== 'sProvider') return;
+  S.settings = await api('POST', '/api/settings', { provider: ev.target.value });
+  fillModels([]); renderSettings();
+});
+$('#search').addEventListener('input', renderList);
+setInterval(() => { const timer = document.querySelector('[role="timer"]'); if (timer && S.agent?.callStartedAt) timer.textContent = Math.floor((Date.now() - Date.parse(S.agent.callStartedAt)) / 60000) + ' minutes elapsed'; }, 1000);
+let pollingOrgo = false;
+setInterval(async () => {
+  if (pollingOrgo || !S.agent || S.orgoJob?.status !== 'running') return;
+  const agent = S.agent;
+  pollingOrgo = true;
+  try {
+    const job = await api('GET', '/api/orgo/status?id=' + agent.id);
+    if (S.agent !== agent) return;
+    S.orgoJob = job;
+    const status = document.querySelector('[data-orgo-status]'), output = document.querySelector('[data-orgo-output]');
+    if (status) status.textContent = job.status + ': ' + (job.phase || '');
+    if (output) output.textContent = (job.events || []).map((e) => e.message).join('\n') + '\n' + (job.output || '');
+    if (job.status !== 'running') { const fresh = await api('GET', '/api/agent?id=' + agent.id); agent.deploy = fresh.deploy; if (job.status === 'complete') S.deployDownload = null; render(); }
+  } catch (e) { toast('Deployment observation interrupted. Inspect the existing client computer before retrying.', true); }
+  finally { pollingOrgo = false; }
+}, 3000);
+window.addEventListener('beforeunload', (e) => { if (saveTimer) { saveNow(); e.preventDefault(); } });
+
+(async () => {
+  try {
+    S.settings = await api('GET', '/api/settings');
+    S.catalog = await api('GET', '/api/catalog');
+    await refreshList();
+    render();
+    if (S.agents.length) await openAgent(S.agents[0].id);
+  } catch (e) { $('#main').innerHTML = `<div class="callout bad">Could not reach the Agent Forge server: ${esc(e.message)}. Is the black start window still open?</div>`; }
+})();
+</script>
+</body>
+</html>
